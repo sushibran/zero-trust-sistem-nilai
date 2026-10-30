@@ -1,0 +1,22 @@
+{
+  "name": "zero-trust-sistem-nilai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Praktikum Zero Trust Security: Sistem Nilai dengan API Gateway sebagai PEP",
+  "type": "commonjs",
+  "scripts": {
+    "db:init": "node src/db/init.js",
+    "db:seed": "node src/db/seed.js",
+    "db:setup": "npm run db:init && npm run db:seed",
+    "start:gateway": "node src/gateway/server.js",
+    "start:nilai": "node src/services/nilai/server.js",
+    "start:transkrip": "node src/services/transkrip/server.js"
+  },
+  "engines": { "node": ">=22.5" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
