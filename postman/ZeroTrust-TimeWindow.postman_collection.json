@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "Zero Trust - Uji Jam Akses",
+    "description": "Sebelum menjalankan: atur ACCESS_START dan ACCESS_END di .env ke rentang satu jam yang sudah lewat dalam TIMEZONE, restart ketiga aplikasi, lalu jalankan collection ini. Kedua request perubahan/finalisasi harus mendapat 403.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login dosen2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "X-Device-ID",
+            "value": "{{dosen2Device}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"dosen2\",\"password\":\"dosen123\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Login dosen2\",()=>pm.response.to.have.status(200));",
+              "const d=pm.response.json(); pm.environment.set(\"dosen2AccessToken\",d.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ambil ID nilai kelas IF202",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{dosen2AccessToken}}",
+            "type": "text"
+          },
+          {
+            "key": "X-Device-ID",
+            "value": "{{dosen2Device}}",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/nilai"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Dosen2 membaca nilai kelasnya\",()=>pm.response.to.have.status(200));",
+              "const d=pm.response.json(); pm.test(\"Data IF202 tersedia\",()=>pm.expect(d.data.length).to.be.greaterThan(0)&&d.data.every(x=>x.courseCode===\"IF202\"));",
+              "if(d.data?.length) pm.environment.set(\"dosen2GradeId\",String(d.data[0].id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perubahan nilai ditolak di luar jam",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{dosen2AccessToken}}",
+            "type": "text"
+          },
+          {
+            "key": "X-Device-ID",
+            "value": "{{dosen2Device}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"score\":90}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/nilai/{{dosen2GradeId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Gateway menolak perubahan di luar jam\",()=>pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finalisasi ditolak di luar jam",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{dosen2AccessToken}}",
+            "type": "text"
+          },
+          {
+            "key": "X-Device-ID",
+            "value": "{{dosen2Device}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/kelas/2/finalisasi"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Gateway menolak finalisasi di luar jam\",()=>pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
