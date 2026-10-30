@@ -98,23 +98,6 @@ Invoke-RestMethod -Uri http://localhost:3000/transkrip/227006001 `
 
 Untuk menguji deny, coba NIM `227006002` dengan token mhs1 atau pakai device yang tidak terdaftar. Dosen dapat mengubah dan memfinalisasi nilai hanya pada kelas ampuannya dan dalam jam yang ditetapkan oleh `ACCESS_START`, `ACCESS_END`, dan `TIMEZONE` di `.env` (default 07.00–21.00 WIB).
 
-## Pengujian dengan Postman
-
-Folder `postman/` berisi collection untuk pengujian alur utama dan jam akses. Import file berikut di Postman:
-
-- `postman/ZeroTrust.postman_collection.json`
-- `postman/ZeroTrust.postman_environment.json`
-- `postman/ZeroTrust-TimeWindow.postman_collection.json`
-- `postman/ZeroTrust-TimeWindow.postman_environment.json`
-
-Pilih environment **Zero Trust - Local** untuk collection utama. Isi `serviceClientSecret` dan `gatewaySecret` di environment Postman dari `.env` lokal. Untuk collection jam akses, pilih environment **Zero Trust - Jam Akses**. Jangan menyimpan nilai secret lokal ke file environment atau commit ke Git. Pastikan Gateway dan kedua service berjalan.
-
-Jalankan request pada collection utama **berurutan**, karena login menyimpan token dan ID nilai untuk request berikutnya. Sebelum menjalankannya, atur sementara `ACCESS_START=00:00` dan `ACCESS_END=23:59` di `.env`, lalu restart ketiga aplikasi. Collection utama menguji login, refresh/rotasi/logout, akses nilai dan transkrip per role, kepemilikan kelas, finalisasi dan sinkronisasi, token service, serta penolakan akses langsung ke service tanpa gateway secret. Perhatikan assertion pass/fail di tab **Test Results** tiap request.
-
-Setelah collection utama berhasil, ubah jam akses ke satu rentang satu jam yang sudah lewat pada hari itu (misalnya `10:00`–`11:00` WIB setelah pukul 11.00), restart aplikasi, lalu jalankan `ZeroTrust-TimeWindow`. Dua request terakhir harus mendapat HTTP 403. Gunakan database seed baru untuk mengulang collection utama, karena collection tersebut memfinalisasi nilai IF101.
-
-> Environment Postman hanya template dengan nilai secret kosong. Jangan commit file environment lokal yang sudah diisi secret.
-
 ## Penerapan Zero Trust
 
 - **Never trust, always verify:** setiap request ke resource melewati validasi JWT di Gateway dan service; service juga mewajibkan `X-Gateway-Secret`.
